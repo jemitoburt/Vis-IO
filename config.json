@@ -1,0 +1,7 @@
+{
+    "webhook_url": "REPLACE_WITH_DISCORD_WEBHOOK_URL",
+    "monitor_delay": "1000",
+    "checkout_delay": "1000",
+    "2captcha_key": "REPLACE_WITH_2CAPTCHA_KEY",
+    "license_key": "REPLACE_WITH_LICENSE_KEY"
+}

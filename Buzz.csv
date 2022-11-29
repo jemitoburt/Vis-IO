@@ -1,0 +1,2 @@
+store,mode,url,size,firstName,lastName,address,homeNumber,city,zip,country,phone,email,proxy_file,shipping_method
+BUZZ,NORMAL,https://www.buzzsneakers.cz/tenisky/8123-nike-air-max-270,44,Pepa,Dlouhy,Kratka,12,,,SK,734372172,pepahurka@gmail.com,proxies_nay,Buzz_1
