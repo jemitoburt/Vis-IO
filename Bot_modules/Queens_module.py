@@ -107,53 +107,58 @@ def product_atc(size_pids, phpsessid, csrf, cart_cookie, currency_cookie, produc
     while True:
         carts = 0
         now = datetime.datetime.now()
-        size_pid = size_pids[size]
-        if size == 'RANDOM':
-            size_pid = random.choice(list(size_pids.values()))
-        headers = {
-            'Host': 'www.queens.cz',
-            'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.1 Safari/605.1.15',
-            'accept-language': 'cs-CZ,cs;q=0.9',
-        }
-
-        cookies = {
-            'PHPSESSID': phpsessid,
-            '_csrf': csrf,
-            'queens_cz_cart': cart_cookie,
-            'queens_cz_currency': currency_cookie,
-        }
-
-        params = {
-            'id': product_id,
-            'product_name': product_name,
-            'product_category': product_category,
-            'product_price': product_price,
-            'event_id': atc_id,
-        }
-
-        data = {
-            '_csrf': csrf_token,
-            'variant': size_pid,
-            'item_id': item_id,
-            'quantity': '1',
-        }
-
-
         try:
-            atc_status = json.loads(requests.post('https://www.queens.cz/ajax/addcart/', params=params, cookies=cookies, headers=headers, data=data, proxies=random_proxy(path, proxy_file)).text)['ret']['status']
-            if atc_status == 2:
-                print(Fore.GREEN + now.strftime(f"[%H:%M:%S - Queens CZ - TASK {i}]") + " - " + "Added to cart" + Fore.RESET)
-                carts += 1
-                os.system('title "Vis IO 1.4 | Running: ' + str(len(tasks)) + ' tasks | Carts: ' + str(carts) + ' | Successful checkouts: 0 | Failed checkouts: 0 | Monitor delay: ' + str(monitor_delay*1000).split('.')[0] + ' | Checkout delay: ' + str(checkout_delay*1000).split('.')[0] + ' | Selected proxy file: ' + proxy_file + '"')
-                time.sleep(checkout_delay)
-                return carts
-            else:
-                print(Fore.RED + now.strftime(f"[%H:%M:%S - Queens CZ - TASK {i}]") + " - " + "Product out of stock" + Fore.RESET)
+            size_pid = size_pids[size]
+            if size == 'RANDOM':
+                size_pid = random.choice(list(size_pids.values()))
+            headers = {
+                'Host': 'www.queens.cz',
+                'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.1 Safari/605.1.15',
+                'accept-language': 'cs-CZ,cs;q=0.9',
+            }
+
+            cookies = {
+                'PHPSESSID': phpsessid,
+                '_csrf': csrf,
+                'queens_cz_cart': cart_cookie,
+                'queens_cz_currency': currency_cookie,
+            }
+
+            params = {
+                'id': product_id,
+                'product_name': product_name,
+                'product_category': product_category,
+                'product_price': product_price,
+                'event_id': atc_id,
+            }
+
+            data = {
+                '_csrf': csrf_token,
+                'variant': size_pid,
+                'item_id': item_id,
+                'quantity': '1',
+            }
+
+
+            try:
+                atc_status = json.loads(requests.post('https://www.queens.cz/ajax/addcart/', params=params, cookies=cookies, headers=headers, data=data, proxies=random_proxy(path, proxy_file)).text)['ret']['status']
+                if atc_status == 2:
+                    print(Fore.GREEN + now.strftime(f"[%H:%M:%S - Queens CZ - TASK {i}]") + " - " + "Added to cart" + Fore.RESET)
+                    carts += 1
+                    os.system('title "Vis IO 1.1.4 | Running: ' + str(len(tasks)) + ' tasks | Carts: ' + str(carts) + ' | Successful checkouts: 0 | Failed checkouts: 0 | Monitor delay: ' + str(monitor_delay*1000).split('.')[0] + ' | Checkout delay: ' + str(checkout_delay*1000).split('.')[0] + ' | Selected proxy file: ' + proxy_file + '"')
+                    time.sleep(checkout_delay)
+                    return carts
+                else:
+                    print(Fore.RED + now.strftime(f"[%H:%M:%S - Queens CZ - TASK {i}]") + " - " + "Product out of stock" + Fore.RESET)
+                    time.sleep(monitor_delay)
+            except:
+                print(Fore.RED + now.strftime(f"[%H:%M:%S - Queens CZ - TASK {i}]") + " - " + "Connection error,retrying..." + Fore.RESET)
                 time.sleep(monitor_delay)
         except:
-            print(Fore.RED + now.strftime(f"[%H:%M:%S - Queens CZ - TASK {i}]") + " - " + "Connection error,retrying..." + Fore.RESET)
+            print(Fore.RED + now.strftime(f"[%H:%M:%S - Queens CZ - TASK {i}]") + " - " + "Size not available" + Fore.RESET)
             time.sleep(monitor_delay)
+        
 
 def get_cart(phpsessid, csrf, cart_cookie, currency_cookie, i, monitor_delay, checkout_delay, path, proxy_file):
     while True:
@@ -423,7 +428,7 @@ def submit_billing(queens_cz_checkout_afternoon_delivery, queens_cz_checkout_pay
             if response.status_code == 302 or response.status_code == 200:
                 print(Fore.GREEN + now.strftime(f"[%H:%M:%S - Queens CZ - TASK {i}]") + " - " + "Order confirmed" + Fore.RESET)
                 checkouts += 1
-                os.system('title "Vis IO 1.4 | Running: ' + str(len(tasks)) + ' tasks | Carts: ' + str(carts) + ' | Successful checkouts: ' + str(checkouts) + ' | Failed checkouts: ' + str(failed_checkouts) + ' | Monitor delay: ' + str(monitor_delay*1000).split('.')[0] + ' | Checkout delay: ' + str(checkout_delay*1000).split('.')[0] + ' | Selected proxy file: ' + proxy_file + '"')
+                os.system('title "Vis IO 1.1.4 | Running: ' + str(len(tasks)) + ' tasks | Carts: ' + str(carts) + ' | Successful checkouts: ' + str(checkouts) + ' | Failed checkouts: ' + str(failed_checkouts) + ' | Monitor delay: ' + str(monitor_delay*1000).split('.')[0] + ' | Checkout delay: ' + str(checkout_delay*1000).split('.')[0] + ' | Selected proxy file: ' + proxy_file + '"')
                 order_number = json.loads(response.text.split('[];</script><script>dataLayer.push(')[1].split(');')[0].replace("'", '"'))['ecommerce']['purchase']['actionField']['id']
                 order_price = str(json.loads(response.text.split('[];</script><script>dataLayer.push(')[1].split(');')[0].replace("'", '"'))['ecommerce']['purchase']['actionField']['revenue'])
                 product_name = json.loads(response.text.split('[];</script><script>dataLayer.push(')[1].split(');')[0].replace("'", '"'))['ecommerce']['purchase']['products'][0]['name']
@@ -451,7 +456,7 @@ def submit_billing(queens_cz_checkout_afternoon_delivery, queens_cz_checkout_pay
             else:
                 print(Fore.RED + now.strftime(f"[%H:%M:%S - Queens CZ - TASK {i}]") + " - " + "Failed to checkout" + Fore.RESET)
                 failed_checkouts += 1
-                os.system('title "Vis IO 1.4 | Running: ' + str(len(tasks)) + ' tasks | Carts: ' + str(carts) + ' | Successful checkouts: ' + str(checkouts) + ' | Failed checkouts: ' + str(failed_checkouts) + ' | Monitor delay: ' + str(monitor_delay*1000).split('.')[0] + ' | Checkout delay: ' + str(checkout_delay*1000).split('.')[0] + ' | Selected proxy file: ' + proxy_file + '"')
+                os.system('title "Vis IO 1.1.4 | Running: ' + str(len(tasks)) + ' tasks | Carts: ' + str(carts) + ' | Successful checkouts: ' + str(checkouts) + ' | Failed checkouts: ' + str(failed_checkouts) + ' | Monitor delay: ' + str(monitor_delay*1000).split('.')[0] + ' | Checkout delay: ' + str(checkout_delay*1000).split('.')[0] + ' | Selected proxy file: ' + proxy_file + '"')
                 input()
                 break
         except:
@@ -501,7 +506,7 @@ def submit_billing_pickup(queens_cz_checkout_afternoon_delivery, queens_cz_check
             if response.status_code == 302 or response.status_code == 200:
                 print(Fore.GREEN + now.strftime(f"[%H:%M:%S - Queens CZ - TASK {i}]") + " - " + "Order confirmed" + Fore.RESET)
                 checkouts += 1
-                os.system('title "Vis IO 1.4 | Running: ' + str(len(tasks)) + ' tasks | Carts: ' + str(carts) + ' | Successful checkouts: ' + str(checkouts) + ' | Failed checkouts: ' + str(failed_checkouts) + ' | Monitor delay: ' + str(monitor_delay*1000).split('.')[0] + ' | Checkout delay: ' + str(checkout_delay*1000).split('.')[0] + ' | Selected proxy file: ' + proxy_file + '"')
+                os.system('title "Vis IO 1.1.4 | Running: ' + str(len(tasks)) + ' tasks | Carts: ' + str(carts) + ' | Successful checkouts: ' + str(checkouts) + ' | Failed checkouts: ' + str(failed_checkouts) + ' | Monitor delay: ' + str(monitor_delay*1000).split('.')[0] + ' | Checkout delay: ' + str(checkout_delay*1000).split('.')[0] + ' | Selected proxy file: ' + proxy_file + '"')
                 order_number = json.loads(response.text.split('[];</script><script>dataLayer.push(')[1].split(');')[0].replace("'", '"'))['ecommerce']['purchase']['actionField']['id']
                 order_price = str(json.loads(response.text.split('[];</script><script>dataLayer.push(')[1].split(');')[0].replace("'", '"'))['ecommerce']['purchase']['actionField']['revenue'])
                 product_name = json.loads(response.text.split('[];</script><script>dataLayer.push(')[1].split(');')[0].replace("'", '"'))['ecommerce']['purchase']['products'][0]['name']
@@ -529,7 +534,7 @@ def submit_billing_pickup(queens_cz_checkout_afternoon_delivery, queens_cz_check
             else:
                 print(Fore.RED + now.strftime(f"[%H:%M:%S - Queens CZ - TASK {i}]") + " - " + "Failed to checkout" + Fore.RESET)
                 failed_checkouts += 1
-                os.system('title "Vis IO 1.4 | Running: ' + str(len(tasks)) + ' tasks | Carts: ' + str(carts) + ' | Successful checkouts: ' + str(checkouts) + ' | Failed checkouts: ' + str(failed_checkouts) + ' | Monitor delay: ' + str(monitor_delay*1000).split('.')[0] + ' | Checkout delay: ' + str(checkout_delay*1000).split('.')[0] + ' | Selected proxy file: ' + proxy_file + '"')
+                os.system('title "Vis IO 1.1.4 | Running: ' + str(len(tasks)) + ' tasks | Carts: ' + str(carts) + ' | Successful checkouts: ' + str(checkouts) + ' | Failed checkouts: ' + str(failed_checkouts) + ' | Monitor delay: ' + str(monitor_delay*1000).split('.')[0] + ' | Checkout delay: ' + str(checkout_delay*1000).split('.')[0] + ' | Selected proxy file: ' + proxy_file + '"')
                 input()
                 break
         except:
@@ -556,7 +561,7 @@ def run_tasks_queens(url, path, proxy_file, webhook_url, monitor_delay, checkout
 def queens(url, csv_selected, path, proxy_file, webhook_url, monitor_delay, checkout_delay, twocaptcha):
     read_tasks(csv_selected, path)
     running_tasks = []
-    os.system('title "Vis IO 1.4 | Running: ' + str(len(tasks)) + ' tasks | Carts: 0 | Successful checkouts: 0 | Failed checkouts: 0 | Monitor delay: ' + str(monitor_delay*1000).split('.')[0] + ' | Checkout delay: ' + str(checkout_delay*1000).split('.')[0] + ' | Selected proxy file: ' + proxy_file + '"')
+    os.system('title "Vis IO 1.1.4 | Running: ' + str(len(tasks)) + ' tasks | Carts: 0 | Successful checkouts: 0 | Failed checkouts: 0 | Monitor delay: ' + str(monitor_delay*1000).split('.')[0] + ' | Checkout delay: ' + str(checkout_delay*1000).split('.')[0] + ' | Selected proxy file: ' + proxy_file + '"')
     for i in range(len(tasks)):
         tasks_run = threading.Thread(target=run_tasks_queens, args=(url, path, proxy_file, webhook_url, monitor_delay, checkout_delay, twocaptcha, i))
         running_tasks.append(tasks_run)

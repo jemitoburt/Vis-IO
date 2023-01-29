@@ -84,19 +84,29 @@ def get_product_info(monitor_delay, checkout_delay, url, proxy_file, path, count
 
         if response_product_page.status_code == 200:
             try:
-                product_image = response_product_page.text.split('<script type="application/ld+json">')[2].split('</script>')[0].split('"image": ["')[1].split('"')[0]
                 jsonStr = json.loads(response_product_page.text.split('<script type="application/ld+json">')[2].split('</script>')[0])
                 product_name = jsonStr['name']
                 product_price = jsonStr['offers']['price'] + ' ' + jsonStr['offers']['priceCurrency']
+                product_sku = jsonStr['sku']
+                product_image = 'https://www.buzzsneakers.cz/files/images/slike_proizvoda/media/DD1/' + product_sku + '/images/' + product_sku + '.jpg'
             except IndexError:
-                try:
-                    product_name = json.loads(response_product_page.text.split('ect.NB_METRIC_DATA  = ')[1].split(';')[0])['name'] + '\n' + json.loads(response_product_page.text.split('ect.NB_METRIC_DATA  = ')[1].split(';')[0])['productCode']
-                    product_price = json.loads(str(response_product_page.text.split('ect.NB_METRIC_DATA  = ')[1].split(';')[0]))['price'] + ' ' + json.loads(str(response_product_page.text.split('ect.NB_METRIC_DATA  = ')[1].split(';')[0]))['currency']
-                    product_image = 'Not available'
-                except:
-                    product_image = 'https://i.imgur.com/5x1YX9p.png'
-                    product_name = 'Check your email'
-                    product_price = 'Check your email'
+                #try:
+                product_name = json.loads(response_product_page.text.split('window.nbMetricObject.NB_METRIC_DATA  = ')[1].split(';')[0])['name'] + '\n' + json.loads(response_product_page.text.split('window.nbMetricObject.NB_METRIC_DATA  = ')[1].split(';')[0])['productCode']
+                product_price = json.loads(response_product_page.text.split('window.nbMetricObject.NB_METRIC_DATA  = ')[1].split(';')[0])['price']
+                if int(product_price) == 0:
+                    product_price = 'N/A'
+                product_sku = json.loads(response_product_page.text.split('window.nbMetricObject.NB_METRIC_DATA  = ')[1].split(';')[0])['productCode']
+                product_image = 'https://www.buzzsneakers.cz/files/images/slike_proizvoda/media/DD1/' + product_sku + '/images/' + product_sku + '.jpg'
+
+                """ except:
+                    try:
+                        product_name = json.loads(response_product_page.text.split('ect.NB_METRIC_DATA  = ')[1].split(';')[0])['name'] + '\n' + json.loads(response_product_page.text.split('ect.NB_METRIC_DATA  = ')[1].split(';')[0])['productCode']
+                        product_price = json.loads(str(response_product_page.text.split('ect.NB_METRIC_DATA  = ')[1].split(';')[0]))['price'] + ' ' + json.loads(str(response_product_page.text.split('ect.NB_METRIC_DATA  = ')[1].split(';')[0]))['currency']
+                        product_image = 'Not available'
+                    except:
+                        product_image = 'https://i.imgur.com/5x1YX9p.png'
+                        product_name = 'Check your email'
+                        product_price = 'Check your email' """
             sizes_str = response_product_page.text.split('<ul class="product-attributes list-inline product-attributes-two-sizes">')[1].split('</ul>')[0].split('<li')
             variations = {}
             m = 2
@@ -112,8 +122,7 @@ def get_product_info(monitor_delay, checkout_delay, url, proxy_file, path, count
                     pid = sizes_str[m].split('combid="')[1].split('"')[0]
                     variations[size] = pid
                     m += 1
-            
-            #os.system('title "Vis IO 1.4 | Running: ' + str(len(tasks)) + ' tasks | Carts: 0 | Checkouts: 0 | Selected proxy file: ' + proxy_file + '"')
+            #os.system('title "Vis IO 1.1.4 | Running: ' + str(len(tasks)) + ' tasks | Carts: 0 | Checkouts: 0 | Selected proxy file: ' + proxy_file + '"')
             print(now.strftime(f"[%H:%M:%S - BUZZ {country.upper()} - TASK {i}]") + ' ' + 'Got size pids')
             time.sleep(checkout_delay)
             return variations, product_name, product_price, product_image, i
@@ -153,7 +162,7 @@ def product_atc(size_task, variations, monitor_delay, checkout_delay, url, proxy
                         atc_cookie = response_atc.cookies
                         print(now.strftime(f"[%H:%M:%S - BUZZ {country.upper()} - TASK {i}]") + ' ' + 'Added to cart')
                         carts += 1
-                        os.system('title "Vis IO 1.4 | Running: ' + str(len(tasks)) + ' tasks | Carts: ' + str(carts) + ' | Successful checkouts: 0 | Failed checkouts: 0 | Monitor delay: ' + str(monitor_delay*1000).split('.')[0] + ' | Checkout delay: ' + str(checkout_delay*1000).split('.')[0] + ' | Selected proxy file: ' + proxy_file + '"')
+                        os.system('title "Vis IO 1.1.4 | Running: ' + str(len(tasks)) + ' tasks | Carts: ' + str(carts) + ' | Successful checkouts: 0 | Failed checkouts: 0 | Monitor delay: ' + str(monitor_delay*1000).split('.')[0] + ' | Checkout delay: ' + str(checkout_delay*1000).split('.')[0] + ' | Selected proxy file: ' + proxy_file + '"')
                         return atc_cookie, i, carts
                     elif response_atc.status_code == 403:
                         print(Fore.RED + now.strftime(f"[%H:%M:%S - BUZZ {country.upper()} - TASK {i}]") + ' ' + 'Proxy banned' + Fore.RESET)
@@ -174,7 +183,7 @@ def product_atc(size_task, variations, monitor_delay, checkout_delay, url, proxy
                         atc_cookie = response_atc.cookies
                         print(now.strftime(f"[%H:%M:%S - BUZZ {country.upper()} - TASK {i}]") + ' ' + 'Added to cart')
                         carts += 1
-                        os.system('title "Vis IO 1.4 | Running: ' + str(len(tasks)) + ' tasks | Carts: ' + str(carts) + ' | Successful checkouts: 0 | Failed checkouts: 0 | Monitor delay: ' + str(monitor_delay*1000).split('.')[0] + ' | Checkout delay: ' + str(checkout_delay*1000).split('.')[0] + ' | Selected proxy file: ' + proxy_file + '"')
+                        os.system('title "Vis IO 1.1.4 | Running: ' + str(len(tasks)) + ' tasks | Carts: ' + str(carts) + ' | Successful checkouts: 0 | Failed checkouts: 0 | Monitor delay: ' + str(monitor_delay*1000).split('.')[0] + ' | Checkout delay: ' + str(checkout_delay*1000).split('.')[0] + ' | Selected proxy file: ' + proxy_file + '"')
                         return atc_cookie, i, carts
                     elif response_atc.status_code == 403:
                         print(Fore.RED + now.strftime(f"[%H:%M:%S - BUZZ {country.upper()} - TASK {i}]") + ' ' + 'Proxy banned' + Fore.RESET)
@@ -201,7 +210,7 @@ def product_atc(size_task, variations, monitor_delay, checkout_delay, url, proxy
                         atc_cookie = response_atc.cookies
                         print(now.strftime(f"[%H:%M:%S - BUZZ {country.upper()} - TASK {i}]") + ' ' + 'Added to cart')
                         carts += 1
-                        os.system('title "Vis IO 1.4 | Running: ' + str(len(tasks)) + ' tasks | Carts: ' + str(carts) + ' | Successful checkouts: 0 | Failed checkouts: 0 | Monitor delay: ' + str(monitor_delay*1000).split('.')[0] + ' | Checkout delay: ' + str(checkout_delay*1000).split('.')[0] + ' | Selected proxy file: ' + proxy_file + '"')
+                        os.system('title "Vis IO 1.1.4 | Running: ' + str(len(tasks)) + ' tasks | Carts: ' + str(carts) + ' | Successful checkouts: 0 | Failed checkouts: 0 | Monitor delay: ' + str(monitor_delay*1000).split('.')[0] + ' | Checkout delay: ' + str(checkout_delay*1000).split('.')[0] + ' | Selected proxy file: ' + proxy_file + '"')
                         return atc_cookie, i, carts
                     elif response_atc.status_code == 403:
                         print(Fore.RED + now.strftime(f"[%H:%M:%S - BUZZ {country.upper()} - TASK {i}]") + ' ' + 'Proxy banned' + Fore.RESET)
@@ -222,7 +231,7 @@ def product_atc(size_task, variations, monitor_delay, checkout_delay, url, proxy
                         atc_cookie = response_atc.cookies
                         print(now.strftime(f"[%H:%M:%S - BUZZ {country.upper()} - TASK {i}]") + ' ' + 'Added to cart')
                         carts += 1
-                        os.system('title "Vis IO 1.4 | Running: ' + str(len(tasks)) + ' tasks | Carts: ' + str(carts) + ' | Successful checkouts: 0 | Failed checkouts: 0 | Monitor delay: ' + str(monitor_delay*1000).split('.')[0] + ' | Checkout delay: ' + str(checkout_delay*1000).split('.')[0] + ' | Selected proxy file: ' + proxy_file + '"')
+                        os.system('title "Vis IO 1.1.4 | Running: ' + str(len(tasks)) + ' tasks | Carts: ' + str(carts) + ' | Successful checkouts: 0 | Failed checkouts: 0 | Monitor delay: ' + str(monitor_delay*1000).split('.')[0] + ' | Checkout delay: ' + str(checkout_delay*1000).split('.')[0] + ' | Selected proxy file: ' + proxy_file + '"')
                         return atc_cookie, i, carts
                     elif response_atc.status_code == 403:
                         print(Fore.RED + now.strftime(f"[%H:%M:%S - BUZZ {country.upper()} - TASK {i}]") + ' ' + 'Proxy banned' + Fore.RESET)
@@ -368,7 +377,7 @@ def order(first_name, last_name, phone, email, webhook_url, monitor_delay, url, 
             order_link = response_order.url
             if 'confirm' in order_link:
                 checkouts += 1
-                os.system('title "Vis IO 1.4 | Running: ' + str(len(tasks)) + ' tasks | Carts: ' + str(carts) + ' | Checkouts: ' + str(checkouts) + ' | Monitor delay: ' + str(monitor_delay*1000).split('.')[0] + ' | Checkout delay: ' + str(checkout_delay*1000).split('.')[0] + ' | Selected proxy file: ' + proxy_file + '"')
+                os.system('title "Vis IO 1.1.4 | Running: ' + str(len(tasks)) + ' tasks | Carts: ' + str(carts) + ' | Checkouts: ' + str(checkouts) + ' | Monitor delay: ' + str(monitor_delay*1000).split('.')[0] + ' | Checkout delay: ' + str(checkout_delay*1000).split('.')[0] + ' | Selected proxy file: ' + proxy_file + '"')
                 print(Fore.GREEN + now.strftime(f"[%H:%M:%S - BUZZ {country.upper()} - TASK {i}]") + ' ' + 'Order placed' + Fore.RESET)
                 webhook = DiscordWebhook(url=webhook_url)
                 embed = DiscordEmbed(title = 'Succesfully checked out', color = 5202069, url = url)
@@ -387,13 +396,15 @@ def order(first_name, last_name, phone, email, webhook_url, monitor_delay, url, 
                 embed.set_thumbnail(url = product_image)
                 webhook.add_embed(embed)
                 response = webhook.execute()
-                input()
+                #input()
+                task_restart_after_checkout(url, path, proxy_file, webhook_url, monitor_delay, checkout_delay, i, country)
                 break
             else:
                 print(Fore.RED + now.strftime(f"[%H:%M:%S - BUZZ {country.upper()} - TASK {i}]") + ' ' + 'Failed checkout' + Fore.RESET)
                 failed_checkouts += 1
-                os.system('title "Vis IO 1.4 | Running: ' + str(len(tasks)) + ' tasks | Carts: ' + str(carts) + ' | Successful checkouts: ' + str(checkouts) + ' | Failed checkouts: ' + str(failed_checkouts) + ' | Monitor delay: ' + str(monitor_delay*1000).split('.')[0] + ' | Checkout delay: ' + str(checkout_delay*1000).split('.')[0] + ' | Selected proxy file: ' + proxy_file + '"')
-                input()
+                os.system('title "Vis IO 1.1.4 | Running: ' + str(len(tasks)) + ' tasks | Carts: ' + str(carts) + ' | Successful checkouts: ' + str(checkouts) + ' | Failed checkouts: ' + str(failed_checkouts) + ' | Monitor delay: ' + str(monitor_delay*1000).split('.')[0] + ' | Checkout delay: ' + str(checkout_delay*1000).split('.')[0] + ' | Selected proxy file: ' + proxy_file + '"')
+                #input()
+                task_restart_after_checkout(url, path, proxy_file, webhook_url, monitor_delay, checkout_delay, i, country)
                 break
         elif country == 'sk':
             headers_order = {
@@ -448,7 +459,7 @@ def order(first_name, last_name, phone, email, webhook_url, monitor_delay, url, 
             order_link = response_order.url
             if 'confirm' in order_link:
                 checkouts += 1
-                os.system('title "Vis IO 1.4 | Running: ' + str(len(tasks)) + ' tasks | Carts: ' + str(carts) + ' | Successful checkouts: ' + str(checkouts) + ' | Failed checkouts: ' + str(failed_checkouts) + ' | Monitor delay: ' + str(monitor_delay*1000).split('.')[0] + ' | Checkout delay: ' + str(checkout_delay*1000).split('.')[0] + ' | Selected proxy file: ' + proxy_file + '"')
+                os.system('title "Vis IO 1.1.4 | Running: ' + str(len(tasks)) + ' tasks | Carts: ' + str(carts) + ' | Successful checkouts: ' + str(checkouts) + ' | Failed checkouts: ' + str(failed_checkouts) + ' | Monitor delay: ' + str(monitor_delay*1000).split('.')[0] + ' | Checkout delay: ' + str(checkout_delay*1000).split('.')[0] + ' | Selected proxy file: ' + proxy_file + '"')
                 print(Fore.GREEN + now.strftime(f"[%H:%M:%S - BUZZ {country.upper()} - TASK {i}]") + ' ' + 'Order placed' + Fore.RESET)
                 webhook = DiscordWebhook(url=webhook_url)
                 embed = DiscordEmbed(title = 'Succesfully checked out', color = 5202069, url = url)
@@ -467,14 +478,22 @@ def order(first_name, last_name, phone, email, webhook_url, monitor_delay, url, 
                 embed.set_thumbnail(url = product_image)
                 webhook.add_embed(embed)
                 response = webhook.execute()
-                input()
+                task_restart_after_checkout(url, path, proxy_file, webhook_url, monitor_delay, checkout_delay, i, country)
                 break
             else:
                 failed_checkouts += 1
                 print(Fore.RED + now.strftime(f"[%H:%M:%S - BUZZ {country.upper()} - TASK {i}]") + ' ' + 'Failed checkout' + Fore.RESET)
-                os.system('title "Vis IO 1.4 | Running: ' + str(len(tasks)) + ' tasks | Carts: ' + str(carts) + ' | Successful checkouts: ' + str(checkouts) + ' | Failed checkouts: ' + str(failed_checkouts) + ' | Monitor delay: ' + str(monitor_delay*1000).split('.')[0] + ' | Checkout delay: ' + str(checkout_delay*1000).split('.')[0] + ' | Selected proxy file: ' + proxy_file + '"')
-                input()
+                os.system('title "Vis IO 1.1.4 | Running: ' + str(len(tasks)) + ' tasks | Carts: ' + str(carts) + ' | Successful checkouts: ' + str(checkouts) + ' | Failed checkouts: ' + str(failed_checkouts) + ' | Monitor delay: ' + str(monitor_delay*1000).split('.')[0] + ' | Checkout delay: ' + str(checkout_delay*1000).split('.')[0] + ' | Selected proxy file: ' + proxy_file + '"')
+                task_restart_after_checkout(url, path, proxy_file, webhook_url, monitor_delay, checkout_delay, i, country)
                 break
+
+def task_restart_after_checkout(url, path, proxy_file, webhook_url, monitor_delay, checkout_delay, i, country):
+    now = datetime.datetime.now()
+    print(now.strftime(f"[%H:%M:%S - BUZZ {country.upper()} - TASK {i}]") + ' ' + 'Restarting task')
+    i = int(i) - 1
+    time.sleep(checkout_delay)
+    run_buzz_mode(url, path, proxy_file, webhook_url, monitor_delay, checkout_delay, i)
+
 
 def run_buzz_mode(url, path, proxy_file, webhook_url, monitor_delay, checkout_delay, i):
     url, first_name, last_name, phone, email, country, address, home_number, size_task, shipping_info = get_csv_data(url, i)
@@ -486,7 +505,7 @@ def run_buzz_mode(url, path, proxy_file, webhook_url, monitor_delay, checkout_de
 
 def buzz_mode(url, csv_selected, path, proxy_file, webhook_url, monitor_delay, checkout_delay):
     read_tasks(csv_selected, path)
-    os.system('title "Vis IO 1.4 | Running: ' + str(len(tasks)) + ' tasks | Carts: 0 | Successful checkouts: 0 | Failed checkouts: 0 | Monitor delay: ' + str(monitor_delay*1000).split('.')[0] + ' | Checkout delay: ' + str(checkout_delay*1000).split('.')[0] + ' | Selected proxy file: ' + proxy_file + '"')
+    os.system('title "Vis IO 1.1.4 | Running: ' + str(len(tasks)) + ' tasks | Carts: 0 | Successful checkouts: 0 | Failed checkouts: 0 | Monitor delay: ' + str(monitor_delay*1000).split('.')[0] + ' | Checkout delay: ' + str(checkout_delay*1000).split('.')[0] + ' | Selected proxy file: ' + proxy_file + '"')
     running_tasks = []
     for i in range(len(tasks)):
         tasks_run = threading.Thread(target=run_buzz_mode, args=(url, path, proxy_file, webhook_url, monitor_delay, checkout_delay, i))

@@ -8,6 +8,7 @@ from Bot_modules.Buzz_module import buzz_mode
 from Bot_modules.Alza_module import alza_normal_mode
 from Bot_modules.TheStreets_module import the_streets
 from Bot_modules.Queens_module import queens
+from Bot_modules.Popname_module import popname
 from pypresence import Presence
 
 try:
@@ -19,7 +20,6 @@ except BaseException:
     pass
 
 
-#os.system('title "Vis IO 1.4 | Running: BUZZ | Running: ' + str(len(tasks)) + ' tasks | Carts: 0 | Checkouts: 0 | Selected proxy file: ' + proxy_file + '"')
 
 path = os.getcwd()
 files = os.listdir(path)
@@ -56,21 +56,37 @@ def info_check(path):
 
 webhook_url, monitor_delay, checkout_delay, twocaptcha, license_key = info_check(path)
 
-os.system('title "Vis IO 1.4 | Running: 0 tasks | Carts: 0 | Successful checkouts: 0 | Failed checkouts: 0 | Monitor delay: ' + str(monitor_delay*1000).split('.')[0] + ' | Checkout delay: ' + str(checkout_delay*1000).split('.')[0] + '"')
+os.system('title "Vis IO 1.1.4 | Running: 0 tasks | Carts: 0 | Successful checkouts: 0 | Failed checkouts: 0 | Monitor delay: ' + str(monitor_delay*1000).split('.')[0] + ' | Checkout delay: ' + str(checkout_delay*1000).split('.')[0] + '"')
 
-url = "https://api.whop.com/api/v1/licenses/{}/validate".format(license_key)
-payload = {"metadata": {}}
-headers = {
-    "accept": "application/json",
-    "content-type": "application/json",
-    "Authorization": "Bearer OWVlMmQ3NzY1MzdlMjg5MjY3OTU3ZDI2ZGM0OGY0OGRhODhmOWJmZTg4OjdMWUJZSzluenZicWVKYWlTbGZzeU1IdVYySEZUZTRqU2ZhWnpKbVZRVk0="
-}
-response = requests.post(url, json=payload, headers=headers)
 
-if response.status_code == 404:
+
+def validate_key(license_key):
+    url = "https://api.whop.com/api/v1/licenses/{}/validate".format(license_key)
+    payload = {"metadata": {}}
+    headers = {
+        "accept": "application/json",
+        "content-type": "application/json",
+        "Authorization": "Bearer OWVlMmQ3NzY1MzdlMjg5MjY3OTU3ZDI2ZGM0OGY0OGRhODhmOWJmZTg4OjdMWUJZSzluenZicWVKYWlTbGZzeU1IdVYySEZUZTRqU2ZhWnpKbVZRVk0="
+    }
+    response = requests.post(url, json=payload, headers=headers).text
+    if 'Please reset your key to use on a new machine' in response:
+        print('Please reset your key to use on a new machine!')
+        input('Press enter to exit')
+    else:
+        key_valid = json.loads(response)['valid']
+        if key_valid == True:
+            status = True
+            return status
+        elif key_valid == False:
+            status = False
+            return status
+
+status = validate_key(license_key)
+
+if status == False:
     exit()
 else:
-    print('License is valid, build 1.4\n')
+    print('License is valid, build 1.1.4\n')
 
     csvs = {}
     i = 1
@@ -101,10 +117,9 @@ else:
                             elif mode_selected == "NORMAL":
                                 print('Starting NORMAL MODE')
                                 nay_normal_mode(url, csv_selected, path, proxy_file, webhook_url, monitor_delay, checkout_delay)
-                            elif mode_selected == "TEST":
-                                print('Starting TEST MODE')
-                                #nay_monitor_test_mode(url, csv_selected, path, proxy_file, webhook_url, monitor_delay, checkout_delay)
-                    
+                            elif mode_selected != "INSTORE" or mode_selected != "NORMAL":
+                                print('Selected mode doesnt exit')
+                            
                     elif run_tasks == 2:
                         url = input('Enter url: ')
                         with open (path + "/" + csv_selected, "r") as read_mode:
@@ -117,9 +132,9 @@ else:
                             elif mode_selected == "NORMAL":
                                 print('Starting NORMAL MODE')
                                 nay_normal_mode(url, csv_selected, path, proxy_file, webhook_url, monitor_delay, checkout_delay)
-                            elif mode_selected == "TEST":
-                                print('Starting TEST MODE')
-                                #nay_monitor_test_mode(url, csv_selected, path, proxy_file, webhook_url, monitor_delay, checkout_delay)
+                            elif mode_selected != "INSTORE" or mode_selected != "NORMAL":
+                                print('Selected mode doesnt exit')
+
 
                 if store_selected == "BUZZ":
                     run_tasks = int(input('1 - Start tasks\n2 - Overwrite url in csv\nSelect option: '))
@@ -132,9 +147,9 @@ else:
                             if mode_selected == "NORMAL":
                                 print('Starting NORMAL MODE')
                                 buzz_mode(url, csv_selected, path, proxy_file, webhook_url, monitor_delay, checkout_delay)
-                            elif mode_selected == "TEST":
-                                print('Starting TEST MODE')
-                                #nay_monitor_test_mode(url, csv_selected, path, proxy_file, webhook_url, monitor_delay, checkout_delay)
+                            elif mode_selected != "NORMAL":
+                                print('Selected mode doesnt exit')
+                                
 
                     elif run_tasks == 2:
                         url = input('Enter url: ')
@@ -145,11 +160,9 @@ else:
                             if mode_selected == "NORMAL":
                                 print('Starting NORMAL MODE')
                                 buzz_mode(url, csv_selected, path, proxy_file, webhook_url, monitor_delay, checkout_delay)
-                            elif mode_selected == "TEST":
-                                print('Starting TEST MODE')
-                                #nay_monitor_test_mode(url, csv_selected, path, proxy_file, webhook_url, monitor_delay, checkout_delay)
-                    
-                
+                            elif mode_selected != "NORMAL":
+                                print('Selected mode doesnt exit')
+                            
                 if store_selected == "ALZA":
                     run_tasks = int(input('1 - Start tasks\n2 - Overwrite url in csv\nSelect option: '))
                     if run_tasks == 1:
@@ -164,6 +177,9 @@ else:
                             elif mode_selected == "PRELOAD":
                                 print('Starting PRELOAD MODE')
                                 alza_normal_mode(url, csv_selected, path, proxy_file, webhook_url, monitor_delay, checkout_delay, twocaptcha)
+                            elif mode_selected != "NORMAL" or mode_selected != "PRELOAD":
+                                print('Selected mode doesnt exit')
+
                     elif run_tasks == 2:
                         url = input('Enter url: ')
                         with open (path + "/" + csv_selected, "r") as read_mode:
@@ -176,6 +192,8 @@ else:
                             elif mode_selected == "PRELOAD":
                                 print('Starting PRELOAD MODE')
                                 alza_normal_mode(url, csv_selected, path, proxy_file, webhook_url, monitor_delay, checkout_delay, twocaptcha)
+                            elif mode_selected != "NORMAL" or mode_selected != "PRELOAD":
+                                print('Selected mode doesnt exit')
                 
                 if store_selected == "THESTREETS":
                     run_tasks = int(input('1 - Start tasks\n2 - Overwrite url in csv\nSelect option: '))
@@ -188,6 +206,8 @@ else:
                             if mode_selected == "NORMAL":
                                 print('Starting NORMAL MODE')
                                 the_streets(url, csv_selected, path, proxy_file, webhook_url, monitor_delay, checkout_delay, twocaptcha)
+                            elif mode_selected != "NORMAL":
+                                print('Selected mode doesnt exit')
                     
                     elif run_tasks == 2:
                         url = input('Enter url: ')
@@ -198,6 +218,8 @@ else:
                             if mode_selected == "NORMAL":
                                 print('Starting NORMAL MODE')
                                 the_streets(url ,csv_selected, path, proxy_file, webhook_url, monitor_delay, checkout_delay, twocaptcha)
+                            elif mode_selected != "NORMAL":
+                                print('Selected mode doesnt exit')
                 
                 if store_selected == "QUEENS":
                     run_tasks = int(input('1 - Start tasks\n2 - Overwrite url in csv\nSelect option: '))
@@ -210,9 +232,11 @@ else:
                             if mode_selected == "NORMAL":
                                 print('Starting NORMAL MODE')
                                 queens(url, csv_selected, path, proxy_file, webhook_url, monitor_delay, checkout_delay, twocaptcha)
-                            if mode_selected == "PICKUP":
+                            elif mode_selected == "PICKUP":
                                 print('Starting PICKUP MODE')
                                 queens(url, csv_selected, path, proxy_file, webhook_url, monitor_delay, checkout_delay, twocaptcha)
+                            elif mode_selected != "NORMAL" or mode_selected != "PICKUP":
+                                print('Selected mode doesnt exit')
                     
                     elif run_tasks == 2:
                         checkout_delay = 0
@@ -225,6 +249,21 @@ else:
                             if mode_selected == "NORMAL":
                                 print('Starting NORMAL MODE')
                                 queens(url, csv_selected, path, proxy_file, webhook_url, monitor_delay, checkout_delay, twocaptcha)
-                            if mode_selected == "PICKUP":
+                            elif mode_selected == "PICKUP":
                                 print('Starting PICKUP MODE')
                                 queens(url, csv_selected, path, proxy_file, webhook_url, monitor_delay, checkout_delay, twocaptcha)
+                            elif mode_selected != "NORMAL" or mode_selected != "PICKUP":
+                                print('Selected mode doesnt exit')
+                
+                if store_selected == "POPNAME":
+                    run_tasks = int(input('1 - Start tasks\nSelect option: '))
+                    if run_tasks == 1:
+                        url = None
+                        with open (path + "/" + csv_selected, "r") as read_mode:
+                            csv_dict_reader = DictReader(read_mode)
+                            for row in csv_dict_reader:
+                                mode_selected = row['mode']
+                            if mode_selected == "RAFFLE":
+                                print('Starting RAFFLE MODE')
+                                popname(url, csv_selected, path, proxy_file, webhook_url, monitor_delay, checkout_delay, twocaptcha)
+                    

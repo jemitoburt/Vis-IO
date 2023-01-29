@@ -287,8 +287,8 @@ def product_atc(i, country, product_url, pid, path, proxy_file, checkout_delay, 
         try:
             response_atc = requests.post('https://www.alza.{}/Services/EShopService.svc/OrderCommodity'.format(country), headers=headers_atc, json=json_data, proxies=random_proxy(path, proxy_file))
             if 'nil' in response_atc.text:
-                print(Fore.RED + now.strftime(f"[%H:%M:%S - ALZA {country.upper()} - TASK {i}]") + " - " + "Change proxies, stopping task..." + Fore.RESET)
-                break
+                print(Fore.RED + now.strftime(f"[%H:%M:%S - ALZA {country.upper()} - TASK {i}]") + " - " + "Changing proxy" + Fore.RESET)
+                time.sleep(monitor_delay)
             elif 'nil' not in response_atc.text:
                 if response_atc.status_code == 200:
                     cookies_idox = response_atc.cookies['IDOX']
@@ -296,7 +296,7 @@ def product_atc(i, country, product_url, pid, path, proxy_file, checkout_delay, 
                     cart_price = json.loads(response_atc.text)['d']['Basket']
                     print(Fore.GREEN + now.strftime(f"[%H:%M:%S - ALZA {country.upper()} - TASK {i}]") + " - " + "Added to cart" + Fore.RESET)
                     carts += 1
-                    os.system('title "Vis IO 1.4 | Running: ' + str(len(tasks)) + ' tasks | Carts: ' + str(carts) + ' | Successful checkouts: 0 | Failed checkouts: 0 | Monitor delay: ' + str(monitor_delay*1000).split('.')[0] + ' | Checkout delay: ' + str(checkout_delay*1000).split('.')[0] + ' | Selected proxy file: ' + proxy_file + '"')
+                    os.system('title "Vis IO 1.1.4 | Running: ' + str(len(tasks)) + ' tasks | Carts: ' + str(carts) + ' | Successful checkouts: 0 | Failed checkouts: 0 | Monitor delay: ' + str(monitor_delay*1000).split('.')[0] + ' | Checkout delay: ' + str(checkout_delay*1000).split('.')[0] + ' | Selected proxy file: ' + proxy_file + '"')
                     time.sleep(checkout_delay)
                     return i, cookies_idox, cookies_cart, cart_price, carts
                 else:
@@ -343,8 +343,8 @@ def dummy_atc(i, country, dummy_url, dummy_pid, path, proxy_file, checkout_delay
         try:
             response_atc = requests.post('https://www.alza.{}/Services/EShopService.svc/OrderCommodity'.format(country), headers=headers_atc, json=json_data, proxies=random_proxy(path, proxy_file))
             if 'nil' in response_atc.text:
-                print(Fore.RED + now.strftime(f"[%H:%M:%S - ALZA {country.upper()} - TASK {i}]") + " - " + "Change proxies, stopping task..." + Fore.RESET)
-                break
+                print(Fore.RED + now.strftime(f"[%H:%M:%S - ALZA {country.upper()} - TASK {i}]") + " - " + "Changing proxy" + Fore.RESET)
+                time.sleep(monitor_delay)
             elif 'nil' not in response_atc.text:
                 if response_atc.status_code == 200:
                     cookies_idox = response_atc.cookies['IDOX']
@@ -403,14 +403,17 @@ def main_atc(i, country, pid, product_url, cookies_idox, path, proxy_file, monit
                 }
                 try:
                     response_atc_dummy_2 = requests.post('https://www.alza.{}/Services/EShopService.svc/OrderCommodity'.format(country), headers=headers_atc_dummy_2, json=json_data_dummy_2, cookies=cookies_product_atc_dummy, proxies=random_proxy(path, proxy_file))
-                    if response_atc_dummy_2.status_code == 500 or response_atc_dummy_2.status_code == 430:
+                    #if response_atc_dummy_2.status_code == 500 or response_atc_dummy_2.status_code == 430:
+                    if response_atc_dummy_2.status_code > 200:
                         print(Fore.RED + now.strftime(f"[%H:%M:%S - ALZA {country.upper()} - TASK {i}]") + " - " + "Site dead, waiting 10 seconds" + Fore.RESET)
                         time.sleep(10)
-                    elif response_atc_dummy_2.status_code !=500:
+                    #elif response_atc_dummy_2.status_code !=500 or response_atc_dummy_2.status_code != 430:
+                    elif response_atc_dummy_2.status_code == 200:
                         if '"ErrorLevel":1' not in response_atc_dummy_2.text and 'nil' not in response_atc_dummy_2.text:
+                            print(response_atc_dummy_2.status_code, response_atc_dummy_2.text)
                             print(Fore.GREEN + now.strftime(f"[%H:%M:%S - ALZA {country.upper()} - TASK {i}]") + " - " + "Main product added to cart, continuing in checking out" + Fore.RESET)
                             carts += 1
-                            os.system('title "Vis IO 1.4 | Running: ' + str(len(tasks)) + ' tasks | Carts: ' + str(carts) + ' | Successful checkouts: 0 | Failed checkouts: 0 | Monitor delay: ' + str(monitor_delay*1000).split('.')[0] + ' | Checkout delay: ' + str(checkout_delay*1000).split('.')[0] + ' | Selected proxy file: ' + proxy_file + '"')
+                            os.system('title "Vis IO 1.1.4 | Running: ' + str(len(tasks)) + ' tasks | Carts: ' + str(carts) + ' | Successful checkouts: 0 | Failed checkouts: 0 | Monitor delay: ' + str(monitor_delay*1000).split('.')[0] + ' | Checkout delay: ' + str(checkout_delay*1000).split('.')[0] + ' | Selected proxy file: ' + proxy_file + '"')
                             return i, carts
                         else:
                             print(Fore.RED + now.strftime(f"[%H:%M:%S - ALZA {country.upper()} - TASK {i}]") + " - " + "Main product is oos, retrying..." + Fore.RESET)
@@ -803,7 +806,7 @@ def checkout_7_8(cookies_idox, country, path, proxy_file, monitor_delay, checkou
             print(now.strftime(f"[%H:%M:%S - ALZA {country.upper()} - TASK {i}]") + " - " + "Connection error, retrying...")
             time.sleep(monitor_delay)
 
-def checkout_8_8(cookies_idox, country, path, proxy_file, monitor_delay, i, webhook_url, product_url, product_name, product_price, email, product_image, mode, carts, checkout_delay):
+def checkout_8_8(cookies_idox, country, path, proxy_file, monitor_delay, i, webhook_url, product_url, product_name, product_price, email, product_image, mode, carts, checkout_delay, twocaptcha, url):
     while True:
         checkouts = 0
         failed_checkouts = 0
@@ -823,7 +826,7 @@ def checkout_8_8(cookies_idox, country, path, proxy_file, monitor_delay, i, webh
             if 'Rekapitulace' in response_checkout_checkout.text or 'Rekapitulácia' in response_checkout_checkout.text:
                 print(Fore.GREEN + now.strftime(f"[%H:%M:%S - ALZA {country.upper()} - TASK {i}]") + " - " + "Order confirmed" + Fore.RESET)
                 checkouts += 1
-                os.system('title "Vis IO 1.4 | Running: ' + str(len(tasks)) + ' tasks | Carts: ' + str(carts) + ' | Successful checkouts: ' + str(checkouts) + ' | Failed checkouts: ' + str(failed_checkouts) +' | Monitor delay: ' + str(monitor_delay*1000).split('.')[0] + ' | Checkout delay: ' + str(checkout_delay*1000).split('.')[0] + ' | Selected proxy file: ' + proxy_file + '"')
+                os.system('title "Vis IO 1.1.4 | Running: ' + str(len(tasks)) + ' tasks | Carts: ' + str(carts) + ' | Successful checkouts: ' + str(checkouts) + ' | Failed checkouts: ' + str(failed_checkouts) +' | Monitor delay: ' + str(monitor_delay*1000).split('.')[0] + ' | Checkout delay: ' + str(checkout_delay*1000).split('.')[0] + ' | Selected proxy file: ' + proxy_file + '"')
                 order_number = response_checkout_checkout.text.split('"transactionid":"')[1].split('"')[0]
                 webhook = DiscordWebhook(url=webhook_url)
                 embed = DiscordEmbed(title = 'Succesfully checked out', color = 5202069, url = product_url)
@@ -844,19 +847,28 @@ def checkout_8_8(cookies_idox, country, path, proxy_file, monitor_delay, i, webh
                 embed.add_embed_field(name = 'Mode', value = mode)
                 embed.set_footer(text = 'Alza {} by @je_mi_to_burt#2604'.format(country.upper()), icon_url = 'https://i.imgur.com/sVNBL0b.png')
                 embed.set_thumbnail(url = product_image)
-                webhook.add_embed(embed)
-                response = webhook.execute()
-                input()
+                #webhook.add_embed(embed)
+                #response = webhook.execute()
+                task_restart_after_checkout(url, path, proxy_file, webhook_url, monitor_delay, checkout_delay, twocaptcha, i, country)
+                #input()
                 break
             else:
                 print(Fore.RED + now.strftime(f"[%H:%M:%S - ALZA {country.upper()} - TASK {i}]") + " " + "Failed to place order." + Fore.RESET)
                 failed_checkouts += 1
-                os.system('title "Vis IO 1.4 | Running: ' + str(len(tasks)) + ' tasks | Carts: ' + str(carts) + ' | Successful checkouts: ' + str(checkouts) + ' | Failed checkouts: ' + str(failed_checkouts) +' | Monitor delay: ' + str(monitor_delay*1000).split('.')[0] + ' | Checkout delay: ' + str(checkout_delay*1000).split('.')[0] + ' | Selected proxy file: ' + proxy_file + '"')
-                input()
+                os.system('title "Vis IO 1.1.4 | Running: ' + str(len(tasks)) + ' tasks | Carts: ' + str(carts) + ' | Successful checkouts: ' + str(checkouts) + ' | Failed checkouts: ' + str(failed_checkouts) +' | Monitor delay: ' + str(monitor_delay*1000).split('.')[0] + ' | Checkout delay: ' + str(checkout_delay*1000).split('.')[0] + ' | Selected proxy file: ' + proxy_file + '"')
+                task_restart_after_checkout(url, path, proxy_file, webhook_url, monitor_delay, checkout_delay, twocaptcha, i, country)
+                #input()
                 break
         except:
             print(Fore.RED + now.strftime(f"[%H:%M:%S - ALZA {country.upper()} - TASK {i}]") + " " + "Connection error, retrying..." + Fore.RESET)
             time.sleep(monitor_delay)
+
+def task_restart_after_checkout(url, path, proxy_file, webhook_url, monitor_delay, checkout_delay, twocaptcha, i, country):
+    now = datetime.datetime.now()
+    print(now.strftime(f"[%H:%M:%S - ALZA {country.upper()} - TASK {i}]") + ' ' + 'Restarting task')
+    i = int(i) - 1
+    time.sleep(checkout_delay)
+    run_alza_normal_mode(url, path, proxy_file, webhook_url, monitor_delay, checkout_delay, twocaptcha, i)
 
 def run_alza_normal_mode(url, path, proxy_file, webhook_url, monitor_delay, checkout_delay, twocaptcha, i):
     product_url, pid, dummy_url, dummy_pid, first_name, last_name, zip_code, city_checkout_sk, phone, email, city, street_2, i, country, mode = get_csv_data(url, i)
@@ -872,7 +884,7 @@ def run_alza_normal_mode(url, path, proxy_file, webhook_url, monitor_delay, chec
         i = checkout_5_8(cookies_idox, country, path, proxy_file, monitor_delay, checkout_delay, i, first_name, last_name, email, city_checkout_sk, zip_code, phone, street_2)
         i = checkout_6_8(cookies_idox, country, path, proxy_file, monitor_delay, checkout_delay, i)
         i = checkout_7_8(cookies_idox, country, path, proxy_file, monitor_delay, checkout_delay, i)
-        checkout_8_8(cookies_idox, country, path, proxy_file, monitor_delay, i, webhook_url, product_url, product_name, product_price, email, product_image, mode, carts)
+        checkout_8_8(cookies_idox, country, path, proxy_file, monitor_delay, i, webhook_url, product_url, product_name, product_price, email, product_image, mode, carts, twocaptcha, url)
     if mode == 'PRELOAD':
         i, cookies_idox, cookies_cart, cart_price = dummy_atc(i, country, dummy_url, dummy_pid, path, proxy_file, checkout_delay, monitor_delay)
         i, group_id, order_id = get_cart(cookies_idox, country, i, path, proxy_file, monitor_delay, checkout_delay)
@@ -886,11 +898,11 @@ def run_alza_normal_mode(url, path, proxy_file, webhook_url, monitor_delay, chec
         i = checkout_5_8(cookies_idox, country, path, proxy_file, monitor_delay, checkout_delay, i, first_name, last_name, email, city_checkout_sk, zip_code, phone, street_2)
         i = checkout_6_8(cookies_idox, country, path, proxy_file, monitor_delay, checkout_delay, i)
         i = checkout_7_8(cookies_idox, country, path, proxy_file, monitor_delay, checkout_delay, i)
-        checkout_8_8(cookies_idox, country, path, proxy_file, monitor_delay, i, webhook_url, product_url, product_name, product_price, email, product_image, mode, carts, checkout_delay)
+        checkout_8_8(cookies_idox, country, path, proxy_file, monitor_delay, i, webhook_url, product_url, product_name, product_price, email, product_image, mode, carts, checkout_delay, twocaptcha, url)
 
 def alza_normal_mode(url, csv_selected, path, proxy_file, webhook_url, monitor_delay, checkout_delay, twocaptcha):
     read_tasks(csv_selected, path)
-    os.system('title "Vis IO 1.4 | Running: ' + str(len(tasks)) + ' tasks | Carts: 0 | Successful checkouts: 0 | Failed checkouts: 0 | Monitor delay: ' + str(monitor_delay*1000).split('.')[0] + ' | Checkout delay: ' + str(checkout_delay*1000).split('.')[0] + ' | Selected proxy file: ' + proxy_file + '"')
+    os.system('title "Vis IO 1.1.4 | Running: ' + str(len(tasks)) + ' tasks | Carts: 0 | Successful checkouts: 0 | Failed checkouts: 0 | Monitor delay: ' + str(monitor_delay*1000).split('.')[0] + ' | Checkout delay: ' + str(checkout_delay*1000).split('.')[0] + ' | Selected proxy file: ' + proxy_file + '"')
     running_tasks = []
     for i in range(len(tasks)):
         tasks_run = threading.Thread(target=run_alza_normal_mode, args=(url, path, proxy_file, webhook_url, monitor_delay, checkout_delay, twocaptcha, i))
